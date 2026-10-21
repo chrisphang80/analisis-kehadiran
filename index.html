@@ -2,7 +2,7 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
 <title>SISTEM ANALISIS DATA KEHADIRAN MURID</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <style>
+  /* ==== BASE & VARIABLES ==== */
   :root {
     --primary: #1e40af; --primary-light: #3b82f6;
     --success: #16a34a; --danger: #dc2626; --warning: #f59e0b;
@@ -20,50 +21,122 @@
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
     --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
     --shadow-lg: 0 10px 25px rgba(0,0,0,0.12);
+    --nav-height-mobile: 64px;
+    --header-height-mobile: auto;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-top: env(safe-area-inset-top, 0px);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-  header { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; padding: 1rem 1.5rem; box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100; }
-  .header-top { display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
-  .logo-box { width: 56px; height: 56px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-md); overflow: hidden; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg); color: var(--text); min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: var(--safe-bottom);
+  }
+
+  /* ==== HEADER ==== */
+  header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    color: white; padding: 0.6rem 1rem;
+    box-shadow: var(--shadow-md); position: sticky; top: 0; z-index: 100;
+    padding-top: calc(0.6rem + var(--safe-top));
+  }
+  .header-top { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; flex-wrap: wrap; }
+  .logo-box {
+    width: 44px; height: 44px; background: white; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; box-shadow: var(--shadow-md); overflow: hidden;
+  }
   .logo-box img { width: 100%; height: 100%; object-fit: contain; }
-  .logo-box .logo-placeholder { font-size: 1.5rem; color: var(--primary); }
+  .logo-box .logo-placeholder { font-size: 1.3rem; color: var(--primary); }
   .header-text { flex: 1; min-width: 0; }
-  header h1 { font-size: 1.15rem; margin-bottom: 0.25rem; }
-  header .sekolah-info { font-size: 0.82rem; opacity: 0.9; }
-  .tahun-picker-wrap { display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.4rem 0.75rem; border-radius: 10px; flex-shrink: 0; }
-  .tahun-picker-wrap label { font-size: 0.82rem; font-weight: 600; }
-  .tahun-picker-wrap select { padding: 0.35rem 0.5rem; border-radius: 6px; border: none; font-size: 0.85rem; font-weight: 700; color: var(--primary); background: white; cursor: pointer; }
-  nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-  nav button { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; font-size: 0.82rem; transition: all 0.2s; }
+  header h1 { font-size: 0.95rem; margin-bottom: 0.15rem; line-height: 1.2; }
+  header .sekolah-info { font-size: 0.7rem; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tahun-picker-wrap {
+    display: flex; align-items: center; gap: 0.3rem;
+    background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem;
+    border-radius: 8px; flex-shrink: 0;
+  }
+  .tahun-picker-wrap label { font-size: 0.7rem; font-weight: 600; }
+  .tahun-picker-wrap select {
+    padding: 0.2rem 0.3rem; border-radius: 5px; border: none;
+    font-size: 0.75rem; font-weight: 700; color: var(--primary);
+    background: white; cursor: pointer;
+  }
+
+  /* ==== NAVIGATION (desktop default) ==== */
+  nav {
+    display: flex; gap: 0.35rem; flex-wrap: wrap;
+    margin-top: 0.2rem;
+  }
+  nav button {
+    background: rgba(255,255,255,0.15); color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 0.4rem 0.7rem; border-radius: 7px; cursor: pointer;
+    font-size: 0.75rem; transition: all 0.2s; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+  }
   nav button:hover { background: rgba(255,255,255,0.3); transform: translateY(-1px); }
   nav button.active { background: white; color: var(--primary); font-weight: bold; }
-  main { padding: 1.5rem; max-width: 1500px; margin: 0 auto; }
+  nav button .nav-label { display: inline; }
+
+  /* ==== MAIN ==== */
+  main { padding: 1rem; max-width: 1500px; margin: 0 auto; }
   .page { display: none; }
   .page.active { display: block; animation: fadeIn 0.3s; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* Dashboard */
+  /* ==== DASHBOARD ==== */
   .dash-hero {
     background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #8b5cf6 100%);
-    border-radius: 20px; padding: 2rem; color: white; margin-bottom: 1.5rem;
+    border-radius: 16px; padding: 1.25rem; color: white; margin-bottom: 1rem;
     position: relative; overflow: hidden; box-shadow: var(--shadow-lg);
   }
-  .dash-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%); border-radius: 50%; }
-  .dash-hero::after { content: ''; position: absolute; bottom: -30%; left: -5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%; }
+  .dash-hero::before {
+    content: ''; position: absolute; top: -50%; right: -10%;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
   .dash-hero-content { position: relative; z-index: 1; }
-  .dash-greeting { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; }
-  .dash-subtitle { font-size: 0.95rem; opacity: 0.9; }
-  .dash-date { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.2); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; margin-top: 1rem; backdrop-filter: blur(10px); }
+  .dash-greeting { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.35rem; }
+  .dash-subtitle { font-size: 0.8rem; opacity: 0.9; }
+  .dash-date {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(255,255,255,0.2); padding: 0.35rem 0.8rem;
+    border-radius: 20px; font-size: 0.75rem; margin-top: 0.75rem;
+    backdrop-filter: blur(10px);
+  }
 
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .stat-card { background: var(--card); border-radius: 16px; padding: 1.5rem 1.25rem; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: 1px solid var(--border); cursor: pointer; }
-  .stat-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
-  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--stat-color, var(--primary)); }
-  .stat-card .stat-icon { position: absolute; top: 1rem; right: 1rem; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; background: var(--stat-bg, rgba(30,64,175,0.1)); color: var(--stat-color, var(--primary)); }
-  .stat-card .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; padding-right: 60px; }
-  .stat-card .stat-value { font-size: 2.2rem; font-weight: 800; color: var(--stat-color, var(--primary)); line-height: 1.1; padding-right: 60px; }
-  .stat-card .stat-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; padding-right: 60px; }
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .stat-card {
+    background: var(--card); border-radius: 14px; padding: 1rem 0.9rem;
+    box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+    transition: all 0.3s; border: 1px solid var(--border); cursor: pointer;
+  }
+  .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--stat-color, var(--primary));
+  }
+  .stat-card .stat-icon {
+    position: absolute; top: 0.8rem; right: 0.8rem;
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; background: var(--stat-bg, rgba(30,64,175,0.1));
+    color: var(--stat-color, var(--primary));
+  }
+  .stat-card .stat-label {
+    font-size: 0.68rem; color: var(--muted); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 0.35rem;
+    padding-right: 45px;
+  }
+  .stat-card .stat-value {
+    font-size: 1.6rem; font-weight: 800; color: var(--stat-color, var(--primary));
+    line-height: 1.1; padding-right: 45px;
+  }
+  .stat-card .stat-desc { font-size: 0.68rem; color: var(--muted); margin-top: 0.3rem; padding-right: 45px; }
   .stat-card.primary { --stat-color: #1e40af; --stat-bg: rgba(30,64,175,0.1); }
   .stat-card.success { --stat-color: #16a34a; --stat-bg: rgba(22,163,74,0.1); }
   .stat-card.warning { --stat-color: #f59e0b; --stat-bg: rgba(245,158,11,0.1); }
@@ -71,197 +144,432 @@
   .stat-card.purple  { --stat-color: #8b5cf6; --stat-bg: rgba(139,92,246,0.1); }
   .stat-card.cyan    { --stat-color: #06b6d4; --stat-bg: rgba(6,182,212,0.1); }
 
-  .section-title { display: flex; align-items: center; justify-content: space-between; margin: 1.5rem 0 1rem; flex-wrap: wrap; gap: 0.5rem; }
-  .section-title h3 { font-size: 1.1rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem; }
-  .section-title .badge { background: var(--primary); color: white; padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .section-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin: 1.2rem 0 0.75rem; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .section-title h3 { font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
+  .section-title .badge {
+    background: var(--primary); color: white; padding: 0.15rem 0.5rem;
+    border-radius: 12px; font-size: 0.68rem; font-weight: 600;
+  }
 
-  .grid-bulan { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
-  .bulan-card { background: var(--card); border-radius: 14px; padding: 1rem 0.75rem; text-align: center; cursor: pointer; border: 2px solid transparent; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
-  .bulan-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--bulan-color, #cbd5e1); }
-  .bulan-card:hover { border-color: var(--primary-light); transform: translateY(-4px); box-shadow: var(--shadow-md); }
-  .bulan-card h4 { font-size: 0.95rem; color: var(--text); margin-bottom: 0.5rem; font-weight: 600; }
-  .bulan-card .pct { font-size: 1.3rem; font-weight: 800; margin-top: 0.25rem; line-height: 1; }
+  .grid-bulan { display: grid; grid-template-columns: repeat(auto-fit, minmax(85px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+  .bulan-card {
+    background: var(--card); border-radius: 12px; padding: 0.7rem 0.5rem;
+    text-align: center; cursor: pointer; border: 2px solid transparent;
+    transition: all 0.25s; box-shadow: var(--shadow-sm); position: relative; overflow: hidden;
+  }
+  .bulan-card::before {
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+    background: var(--bulan-color, #cbd5e1);
+  }
+  .bulan-card:hover { border-color: var(--primary-light); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .bulan-card h4 { font-size: 0.78rem; color: var(--text); margin-bottom: 0.3rem; font-weight: 600; }
+  .bulan-card .pct { font-size: 1rem; font-weight: 800; margin-top: 0.15rem; line-height: 1; }
   .bulan-card .pct.ok { color: var(--success); }
   .bulan-card .pct.kurang { color: var(--danger); }
-  .bulan-card .pct.empty { color: var(--muted); font-size: 0.75rem; font-weight: 500; }
-  .bulan-card .enrol { font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; display: flex; align-items: center; justify-content: center; gap: 0.2rem; }
-  .bulan-card .status-dot { position: absolute; top: 0.5rem; right: 0.5rem; width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
-  .bulan-card.ok .status-dot { background: var(--success); box-shadow: 0 0 0 4px rgba(22,163,74,0.2); }
-  .bulan-card.kurang .status-dot { background: var(--danger); box-shadow: 0 0 0 4px rgba(220,38,38,0.2); }
+  .bulan-card .pct.empty { color: var(--muted); font-size: 0.65rem; font-weight: 500; }
+  .bulan-card .enrol { font-size: 0.62rem; color: var(--muted); margin-top: 0.25rem; display: flex; align-items: center; justify-content: center; gap: 0.15rem; }
+  .bulan-card .status-dot { position: absolute; top: 0.35rem; right: 0.35rem; width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
+  .bulan-card.ok .status-dot { background: var(--success); box-shadow: 0 0 0 3px rgba(22,163,74,0.2); }
+  .bulan-card.kurang .status-dot { background: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,0.2); }
 
-  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; }
   @media (max-width: 900px) { .chart-row { grid-template-columns: 1fr; } }
-  .chart-panel { background: var(--card); border-radius: 16px; padding: 1.25rem; box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: box-shadow 0.3s; display: flex; flex-direction: column; }
+  .chart-panel {
+    background: var(--card); border-radius: 14px; padding: 1rem;
+    box-shadow: var(--shadow-sm); border: 1px solid var(--border);
+    transition: box-shadow 0.3s; display: flex; flex-direction: column;
+  }
   .chart-panel:hover { box-shadow: var(--shadow-md); }
-  .chart-panel .panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem; }
-  .chart-panel .panel-title { font-size: 0.95rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
-  .chart-panel .panel-sub { font-size: 0.75rem; color: var(--muted); }
-  .chart-panel .chart-container { position: relative; height: 280px; width: 100%; }
+  .chart-panel .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;
+  }
+  .chart-panel .panel-title { font-size: 0.85rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 0.3rem; }
+  .chart-panel .panel-sub { font-size: 0.68rem; color: var(--muted); }
+  .chart-panel .chart-container { position: relative; height: 220px; width: 100%; }
 
-  .top-kelas-list { display: flex; flex-direction: column; gap: 0.75rem; min-height: 280px; justify-content: center; }
-  .top-kelas-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem; background: #f8fafc; border-radius: 10px; transition: all 0.2s; }
-  .top-kelas-item:hover { background: #f1f5f9; transform: translateX(4px); }
-  .top-kelas-rank { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.85rem; flex-shrink: 0; color: white; }
+  .top-kelas-list { display: flex; flex-direction: column; gap: 0.6rem; min-height: 220px; justify-content: center; }
+  .top-kelas-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem; background: #f8fafc; border-radius: 10px; transition: all 0.2s;
+  }
+  .top-kelas-item:hover { background: #f1f5f9; transform: translateX(3px); }
+  .top-kelas-rank {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.75rem; flex-shrink: 0; color: white;
+  }
   .top-kelas-rank.gold { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
   .top-kelas-rank.silver { background: linear-gradient(135deg, #94a3b8, #cbd5e1); }
   .top-kelas-rank.bronze { background: linear-gradient(135deg, #b45309, #d97706); }
   .top-kelas-rank.normal { background: #cbd5e1; color: #475569; }
   .top-kelas-info { flex: 1; min-width: 0; }
-  .top-kelas-name { font-weight: 600; font-size: 0.88rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .top-kelas-bar { height: 6px; background: #e2e8f0; border-radius: 3px; margin-top: 0.35rem; overflow: hidden; }
-  .top-kelas-bar-fill { height: 100%; background: linear-gradient(90deg, var(--success), #22c55e); border-radius: 3px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+  .top-kelas-name { font-weight: 600; font-size: 0.78rem; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .top-kelas-bar { height: 5px; background: #e2e8f0; border-radius: 3px; margin-top: 0.25rem; overflow: hidden; }
+  .top-kelas-bar-fill { height: 100%; background: linear-gradient(90deg, var(--success), #22c55e); border-radius: 3px; transition: width 0.8s; }
   .top-kelas-bar-fill.warn { background: linear-gradient(90deg, var(--warning), #fbbf24); }
   .top-kelas-bar-fill.danger { background: linear-gradient(90deg, var(--danger), #ef4444); }
-  .top-kelas-pct { font-weight: 700; font-size: 0.95rem; color: var(--text); flex-shrink: 0; min-width: 60px; text-align: right; }
-  .top-kelas-controls { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; justify-content: flex-end; }
-  .top-kelas-mode-btn { padding: 0.3rem 0.6rem; border-radius: 6px; border: 1px solid var(--border); background: white; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; color: var(--muted); }
+  .top-kelas-pct { font-weight: 700; font-size: 0.85rem; color: var(--text); flex-shrink: 0; min-width: 50px; text-align: right; }
+  .top-kelas-controls { display: flex; align-items: center; gap: 0.3rem; flex-wrap: wrap; justify-content: flex-end; }
+  .top-kelas-mode-btn {
+    padding: 0.25rem 0.5rem; border-radius: 6px;
+    border: 1px solid var(--border); background: white;
+    font-size: 0.68rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; color: var(--muted);
+  }
   .top-kelas-mode-btn:hover { background: #eff6ff; border-color: var(--primary-light); color: var(--primary); }
   .top-kelas-mode-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
-  .top-kelas-month-picker { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--muted); }
-  .top-kelas-month-picker select { padding: 0.25rem 0.4rem; border-radius: 6px; border: 1px solid var(--border); font-size: 0.78rem; background: white; cursor: pointer; }
+  .top-kelas-month-picker { display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: var(--muted); }
+  .top-kelas-month-picker select {
+    padding: 0.2rem 0.3rem; border-radius: 5px;
+    border: 1px solid var(--border); font-size: 0.7rem;
+    background: white; cursor: pointer;
+  }
 
-  .quick-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  .quick-btn { flex: 1; min-width: 130px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.9rem 0.75rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.6rem; text-align: left; font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  .quick-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .quick-btn {
+    flex: 1; min-width: 100px; background: var(--card);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 0.6rem 0.5rem; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 0.4rem; text-align: left;
+    font-size: 0.72rem; font-weight: 600; color: var(--text);
+  }
   .quick-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary-light); background: #eff6ff; }
-  .quick-btn .qi { font-size: 1.3rem; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #eff6ff; flex-shrink: 0; }
+  .quick-btn .qi {
+    font-size: 1rem; width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; background: #eff6ff; flex-shrink: 0;
+  }
 
-  /* Generic */
-  h2 { font-size: 1.4rem; margin-bottom: 1rem; color: var(--primary); }
-  h3 { font-size: 1.05rem; margin: 1.25rem 0 0.5rem; }
-  .card { background: var(--card); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary); }
+  /* ==== GENERIC ==== */
+  h2 { font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary); }
+  h3 { font-size: 0.95rem; margin: 1rem 0 0.4rem; }
+  .card {
+    background: var(--card); border-radius: 10px; padding: 1rem;
+    box-shadow: var(--shadow-sm); border-left: 4px solid var(--primary);
+  }
   .card.success { border-left-color: var(--success); }
   .card.warning { border-left-color: var(--warning); }
   .card.danger { border-left-color: var(--danger); }
-  .card h4 { font-size: 0.8rem; color: var(--muted); font-weight: 500; text-transform: uppercase; }
-  .card .value { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-top: 0.5rem; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .table-wrap { overflow-x: auto; background: var(--card); border-radius: 12px; box-shadow: var(--shadow-sm); margin-bottom: 1rem; }
-  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-  th { background: var(--primary); color: white; padding: 0.6rem 0.4rem; text-align: center; font-weight: 600; white-space: nowrap; }
-  td { padding: 0.45rem; border-bottom: 1px solid var(--border); text-align: center; }
+  .card h4 { font-size: 0.7rem; color: var(--muted); font-weight: 500; text-transform: uppercase; }
+  .card .value { font-size: 1.4rem; font-weight: bold; color: var(--primary); margin-top: 0.35rem; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .table-wrap {
+    overflow-x: auto; background: var(--card); border-radius: 10px;
+    box-shadow: var(--shadow-sm); margin-bottom: 0.75rem;
+    -webkit-overflow-scrolling: touch;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 0.72rem; }
+  th {
+    background: var(--primary); color: white; padding: 0.45rem 0.3rem;
+    text-align: center; font-weight: 600; white-space: nowrap;
+  }
+  td { padding: 0.35rem; border-bottom: 1px solid var(--border); text-align: center; }
   tr:hover td { background: #f8fafc; }
-  td input { width: 58px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; text-align: center; font-size: 0.82rem; }
+  td input {
+    width: 48px; padding: 3px 4px; border: 1px solid var(--border);
+    border-radius: 5px; text-align: center; font-size: 0.72rem;
+  }
   td input:focus { outline: 2px solid var(--primary-light); border-color: transparent; }
   td input.hadir { background: #fef9c3; }
   td input.pct { background: #dbeafe; }
   .row-total td { background: #dbeafe !important; font-weight: bold; }
   .row-total td input { background: white; }
-  .btn { background: var(--primary); color: white; border: none; padding: 0.55rem 1.1rem; border-radius: 8px; cursor: pointer; font-size: 0.88rem; font-weight: 500; transition: all 0.2s; }
+  .btn {
+    background: var(--primary); color: white; border: none;
+    padding: 0.45rem 0.9rem; border-radius: 7px; cursor: pointer;
+    font-size: 0.78rem; font-weight: 500; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    white-space: nowrap;
+  }
   .btn:hover { background: #1e3a8a; transform: translateY(-1px); }
   .btn.success { background: var(--success); }
   .btn.success:hover { background: #15803d; }
   .btn.danger { background: var(--danger); }
   .btn.danger:hover { background: #b91c1c; }
-  .btn.small { padding: 0.35rem 0.7rem; font-size: 0.78rem; }
+  .btn.small { padding: 0.25rem 0.55rem; font-size: 0.7rem; }
   .btn.excel { background: #15803d; }
   .btn.excel:hover { background: #166534; }
   .btn.pdf { background: #b91c1c; }
   .btn.pdf:hover { background: #991b1b; }
   .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
   .btn-outline:hover { background: var(--primary); color: white; }
-  .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
-  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .actions { display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0.75rem 0; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
   .form-group { display: flex; flex-direction: column; }
-  .form-group label { font-size: 0.82rem; color: var(--muted); margin-bottom: 0.35rem; font-weight: 500; }
-  .form-group input, .form-group select, .form-group textarea { padding: 0.55rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.92rem; font-family: inherit; }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: 2px solid var(--primary-light); border-color: transparent; }
-  .chart-wrap { background: var(--card); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
-  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
-  .pie-card { background: var(--card); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
-  .pie-card h4 { font-size: 0.95rem; color: var(--primary); text-align: center; margin-bottom: 0.5rem; }
-  .pie-card .pie-canvas-wrap { position: relative; height: 220px; }
+  .form-group label { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.25rem; font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 0.45rem; border: 1px solid var(--border); border-radius: 7px;
+    font-size: 0.82rem; font-family: inherit;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: 2px solid var(--primary-light); border-color: transparent;
+  }
+  .chart-wrap { background: var(--card); border-radius: 10px; padding: 0.75rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem; }
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+  .pie-card { background: var(--card); border-radius: 10px; padding: 0.75rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; }
+  .pie-card h4 { font-size: 0.85rem; color: var(--primary); text-align: center; margin-bottom: 0.4rem; }
+  .pie-card .pie-canvas-wrap { position: relative; height: 180px; }
   .pie-card .pie-canvas-wrap canvas { max-height: 100%; }
-  .pie-card .pie-total { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
-  .pie-card .pie-total b { color: var(--primary); font-size: 1.1rem; }
-  .big-pie-wrap { max-width: 500px; margin: 0 auto 1.5rem; }
-  .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--success); color: white; padding: 0.75rem 1.5rem; border-radius: 8px; box-shadow: var(--shadow-lg); transition: transform 0.3s; z-index: 1000; font-weight: 500; }
+  .pie-card .pie-total { text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 0.35rem; }
+  .pie-card .pie-total b { color: var(--primary); font-size: 0.95rem; }
+  .big-pie-wrap { max-width: 400px; margin: 0 auto 1rem; }
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success); color: white; padding: 0.6rem 1.2rem;
+    border-radius: 8px; box-shadow: var(--shadow-lg);
+    transition: transform 0.3s; z-index: 1000; font-weight: 500;
+    font-size: 0.82rem; max-width: 90vw; text-align: center;
+  }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { background: var(--danger); }
-  .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
-  .tab { padding: 0.5rem 1rem; background: var(--card); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-size: 0.88rem; transition: all 0.2s; }
+  .tabs { display: flex; gap: 0.4rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+  .tab {
+    padding: 0.4rem 0.8rem; background: var(--card);
+    border: 1px solid var(--border); border-radius: 7px;
+    cursor: pointer; font-size: 0.75rem; transition: all 0.2s;
+  }
   .tab.active { background: var(--primary); color: white; border-color: var(--primary); font-weight: bold; }
   .tab:hover:not(.active) { background: #e0e7ff; }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
-  .status-badge { padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+  .status-badge { padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.65rem; font-weight: 600; }
   .status-badge.ok { background: #dcfce7; color: #15803d; }
   .status-badge.kurang { background: #fee2e2; color: #b91c1c; }
   .status-badge.empty { background: #f1f5f9; color: #64748b; }
   .status-badge.info { background: #dbeafe; color: #1e40af; }
   .mutasi-pos { color: var(--success); font-weight: bold; }
   .mutasi-neg { color: var(--danger); font-weight: bold; }
-  .filter-bar { background: var(--card); border-radius: 12px; padding: 1rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; }
-  .filter-bar .form-group { flex: 1; min-width: 180px; max-width: 260px; }
-  .filter-info { font-size: 0.82rem; color: var(--muted); padding: 0.5rem 0; }
+  .filter-bar {
+    background: var(--card); border-radius: 10px; padding: 0.75rem;
+    box-shadow: var(--shadow-sm); margin-bottom: 0.75rem;
+    display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: end;
+  }
+  .filter-bar .form-group { flex: 1; min-width: 140px; max-width: 220px; }
+  .filter-info { font-size: 0.72rem; color: var(--muted); padding: 0.4rem 0; }
   .filter-info b { color: var(--primary); }
-  .logo-upload-section { display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap; background: var(--card); border-radius: 12px; padding: 1.5rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; }
-  .logo-preview-box { width: 120px; height: 120px; border: 2px dashed var(--border); border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #f8fafc; overflow: hidden; flex-shrink: 0; }
+  .logo-upload-section {
+    display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;
+    background: var(--card); border-radius: 10px; padding: 1rem;
+    box-shadow: var(--shadow-sm); margin-bottom: 1rem;
+  }
+  .logo-preview-box {
+    width: 90px; height: 90px; border: 2px dashed var(--border);
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    background: #f8fafc; overflow: hidden; flex-shrink: 0;
+  }
   .logo-preview-box img { width: 100%; height: 100%; object-fit: contain; }
-  .logo-preview-box .placeholder { color: var(--muted); font-size: 0.8rem; text-align: center; padding: 0.5rem; }
-  .logo-info { flex: 1; min-width: 200px; }
-  .logo-info p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.75rem; }
-  .kaum-legend { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; font-size: 0.85rem; }
-  .kaum-legend .item { display: flex; align-items: center; gap: 0.4rem; }
-  .kaum-legend .dot { width: 14px; height: 14px; border-radius: 3px; }
+  .logo-preview-box .placeholder { color: var(--muted); font-size: 0.7rem; text-align: center; padding: 0.4rem; }
+  .logo-info { flex: 1; min-width: 180px; }
+  .logo-info p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; margin-bottom: 0.5rem; }
+  .kaum-legend { display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center; margin-bottom: 0.75rem; font-size: 0.78rem; }
+  .kaum-legend .item { display: flex; align-items: center; gap: 0.3rem; }
+  .kaum-legend .dot { width: 12px; height: 12px; border-radius: 3px; }
 
-  /* Intervensi styles */
-  .intervensi-form { background: var(--card); border-radius: 12px; padding: 1.25rem; box-shadow: var(--shadow-sm); margin-bottom: 1.5rem; border-left: 4px solid var(--warning); }
-  .intervensi-form .form-grid { margin-bottom: 1rem; }
-  .intervensi-form textarea { min-height: 60px; resize: vertical; }
-  .intervensi-badge { padding: 0.15rem 0.5rem; border-radius: 10px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; }
+  /* Intervensi */
+  .intervensi-form {
+    background: var(--card); border-radius: 10px; padding: 1rem;
+    box-shadow: var(--shadow-sm); margin-bottom: 1rem; border-left: 4px solid var(--warning);
+  }
+  .intervensi-form .form-grid { margin-bottom: 0.75rem; }
+  .intervensi-form textarea { min-height: 50px; resize: vertical; }
+  .intervensi-badge { padding: 0.1rem 0.4rem; border-radius: 8px; font-size: 0.65rem; font-weight: 600; white-space: nowrap; }
   .intervensi-badge.aktif { background: #dcfce7; color: #15803d; }
   .intervensi-badge.selesai { background: #dbeafe; color: #1e40af; }
   .intervensi-badge.gagal { background: #fee2e2; color: #b91c1c; }
   .intervensi-badge.dalam-proses { background: #fef3c7; color: #92400e; }
   .intervensi-badge.belum { background: #f1f5f9; color: #64748b; }
-  .intervensi-row-desc { font-size: 0.78rem; color: var(--muted); max-width: 200px; text-align: left; }
+  .intervensi-row-desc { font-size: 0.7rem; color: var(--muted); max-width: 160px; text-align: left; }
 
   /* Cadangan intervensi */
-  .suggest-panel { background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid var(--warning); }
-  .suggest-panel h3 { margin-top: 0; color: #92400e; display: flex; align-items: center; gap: 0.5rem; }
-  .suggest-panel .suggest-sub { font-size: 0.85rem; color: #78350f; margin-bottom: 1rem; }
-  .suggest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem; }
-  .suggest-card { background: white; border-radius: 10px; padding: 0.9rem 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 0.4rem; border: 1px solid #fcd34d; transition: all 0.2s; }
+  .suggest-panel {
+    background: linear-gradient(135deg, #fef3c7, #fde68a); border-radius: 10px;
+    padding: 1rem; margin-bottom: 1rem; border-left: 4px solid var(--warning);
+  }
+  .suggest-panel h3 { margin-top: 0; color: #92400e; display: flex; align-items: center; gap: 0.4rem; font-size: 0.95rem; }
+  .suggest-panel .suggest-sub { font-size: 0.75rem; color: #78350f; margin-bottom: 0.75rem; }
+  .suggest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.6rem; }
+  .suggest-card {
+    background: white; border-radius: 9px; padding: 0.75rem 0.85rem;
+    box-shadow: var(--shadow-sm); display: flex; flex-direction: column;
+    gap: 0.3rem; border: 1px solid #fcd34d; transition: all 0.2s;
+  }
   .suggest-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-  .suggest-card .suggest-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
-  .suggest-card .suggest-kelas { font-weight: 700; color: var(--text); font-size: 0.92rem; }
-  .suggest-card .suggest-pct { font-weight: 800; color: var(--danger); font-size: 0.92rem; }
-  .suggest-card .suggest-reason { font-size: 0.78rem; color: var(--muted); }
-  .suggest-card .suggest-actions-list { font-size: 0.8rem; color: var(--text); line-height: 1.5; }
-  .suggest-card .suggest-actions-list li { margin-left: 1rem; margin-bottom: 0.15rem; }
-  .suggest-card .suggest-buttons { display: flex; gap: 0.35rem; margin-top: 0.4rem; flex-wrap: wrap; }
-  .suggest-empty { text-align: center; padding: 1.5rem; color: #78350f; font-size: 0.9rem; }
-  .suggest-toggle { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #78350f; margin-bottom: 0.75rem; }
-  .suggest-toggle input { width: 16px; height: 16px; }
+  .suggest-card .suggest-head { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; flex-wrap: wrap; }
+  .suggest-card .suggest-kelas { font-weight: 700; color: var(--text); font-size: 0.82rem; }
+  .suggest-card .suggest-pct { font-weight: 800; color: var(--danger); font-size: 0.82rem; }
+  .suggest-card .suggest-reason { font-size: 0.7rem; color: var(--muted); }
+  .suggest-card .suggest-actions-list { font-size: 0.72rem; color: var(--text); line-height: 1.45; }
+  .suggest-card .suggest-actions-list li { margin-left: 0.9rem; margin-bottom: 0.1rem; }
+  .suggest-card .suggest-buttons { display: flex; gap: 0.3rem; margin-top: 0.3rem; flex-wrap: wrap; }
+  .suggest-empty { text-align: center; padding: 1rem; color: #78350f; font-size: 0.82rem; }
+  .suggest-toggle { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: #78350f; margin-bottom: 0.6rem; }
+  .suggest-toggle input { width: 14px; height: 14px; }
 
   /* Year management */
-  .year-list { display: flex; flex-direction: column; gap: 0.5rem; }
-  .year-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.6rem 0.9rem; background: #f8fafc; border-radius: 8px; border: 1px solid var(--border); }
-  .year-item .year-name { font-weight: 700; font-size: 1rem; color: var(--primary); }
-  .year-item .year-badge { font-size: 0.72rem; padding: 0.15rem 0.5rem; border-radius: 8px; background: #dbeafe; color: #1e40af; font-weight: 600; margin-left: 0.5rem; }
-  .year-item .year-actions { display: flex; gap: 0.35rem; }
+  .year-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .year-item {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.6rem; padding: 0.5rem 0.75rem; background: #f8fafc;
+    border-radius: 7px; border: 1px solid var(--border);
+  }
+  .year-item .year-name { font-weight: 700; font-size: 0.9rem; color: var(--primary); }
+  .year-item .year-badge {
+    font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 6px;
+    background: #dbeafe; color: #1e40af; font-weight: 600; margin-left: 0.4rem;
+  }
+  .year-item .year-actions { display: flex; gap: 0.3rem; }
 
-  @media (max-width: 640px) {
-    main { padding: 1rem; }
-    header { padding: 0.75rem 1rem; }
-    header h1 { font-size: 0.95rem; }
-    nav button { padding: 0.35rem 0.6rem; font-size: 0.72rem; }
-    .stat-card .stat-value { font-size: 1.7rem; }
-    .stat-card .stat-icon { width: 40px; height: 40px; font-size: 1.2rem; }
-    .dash-hero { padding: 1.25rem; }
-    .dash-greeting { font-size: 1.15rem; }
-    th, td { padding: 0.35rem 0.2rem; font-size: 0.72rem; }
-    td input { width: 46px; font-size: 0.72rem; }
-    h2 { font-size: 1.15rem; }
-    .filter-bar { padding: 0.75rem; }
-    .logo-box { width: 44px; height: 44px; }
-    .pie-card .pie-canvas-wrap { height: 180px; }
-    .chart-panel .chart-container { height: 240px; }
+  /* ==== RESPONSIVE : MOBILE BOTTOM NAV & LAYOUT ==== */
+  @media (max-width: 768px) {
+    :root { --header-height-mobile: auto; }
+    body { padding-bottom: calc(var(--nav-height-mobile) + var(--safe-bottom) + 8px); }
+
+    header { padding: 0.5rem 0.75rem; padding-top: calc(0.5rem + var(--safe-top)); }
+    .header-top { gap: 0.4rem; margin-bottom: 0.2rem; }
+    .logo-box { width: 36px; height: 36px; }
+    .logo-box .logo-placeholder { font-size: 1rem; }
+    header h1 { font-size: 0.8rem; }
+    header .sekolah-info { font-size: 0.6rem; }
+    .tahun-picker-wrap { padding: 0.2rem 0.4rem; border-radius: 6px; }
+    .tahun-picker-wrap label { font-size: 0.6rem; }
+    .tahun-picker-wrap select { padding: 0.15rem 0.25rem; font-size: 0.65rem; }
+
+    /* Sembunyikan nav biasa, guna bottom nav */
+    nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      display: flex; justify-content: space-around; align-items: stretch;
+      background: var(--card); border-top: 1px solid var(--border);
+      padding: 0.3rem 0.2rem calc(0.3rem + var(--safe-bottom));
+      margin: 0; z-index: 200; box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+      gap: 0; overflow-x: auto; overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      flex-wrap: nowrap;
+      height: var(--nav-height-mobile);
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar { display: none; }
+    nav button {
+      flex: 0 0 auto; flex-direction: column; gap: 0.1rem;
+      background: transparent; color: var(--muted);
+      border: none; border-radius: 8px;
+      padding: 0.3rem 0.5rem; font-size: 0.55rem;
+      min-width: 52px; max-width: 68px;
+      display: flex; align-items: center; justify-content: center;
+      white-space: nowrap; transition: all 0.2s;
+      line-height: 1.1; text-align: center;
+    }
+    nav button .nav-label { display: inline; font-size: 0.55rem; }
+    nav button:hover { transform: none; background: #f1f5f9; }
+    nav button.active { background: #eff6ff; color: var(--primary); font-weight: 700; }
+    /* Sembunyikan teks emoji tambahan untuk mobile */
+    nav button .nav-icon { font-size: 1.1rem; line-height: 1; display: block; }
+    nav button .nav-label { font-size: 0.55rem; display: block; }
+
+    /* Sembunyikan beberapa button di mobile untuk elak terlalu banyak? Tidak, biar scroll */
+    main { padding: 0.6rem; padding-bottom: 0.5rem; }
+
+    .dash-hero { padding: 1rem; border-radius: 12px; margin-bottom: 0.75rem; }
+    .dash-greeting { font-size: 1rem; }
+    .dash-subtitle { font-size: 0.7rem; }
+    .dash-date { font-size: 0.68rem; padding: 0.25rem 0.6rem; }
+
+    .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+    .stat-card { padding: 0.7rem 0.6rem; border-radius: 10px; }
+    .stat-card .stat-icon { width: 28px; height: 28px; font-size: 0.9rem; top: 0.5rem; right: 0.5rem; border-radius: 7px; }
+    .stat-card .stat-label { font-size: 0.58rem; padding-right: 35px; margin-bottom: 0.2rem; }
+    .stat-card .stat-value { font-size: 1.3rem; padding-right: 35px; }
+    .stat-card .stat-desc { font-size: 0.58rem; padding-right: 35px; }
+
+    .section-title h3 { font-size: 0.82rem; }
+    .grid-bulan { grid-template-columns: repeat(3, 1fr); gap: 0.4rem; }
+    .bulan-card { padding: 0.5rem 0.3rem; border-radius: 10px; }
+    .bulan-card h4 { font-size: 0.68rem; margin-bottom: 0.15rem; }
+    .bulan-card .pct { font-size: 0.85rem; }
+    .bulan-card .enrol { font-size: 0.55rem; }
+
+    .quick-actions { gap: 0.3rem; }
+    .quick-btn { min-width: 80px; padding: 0.45rem 0.35rem; font-size: 0.62rem; gap: 0.25rem; border-radius: 8px; }
+    .quick-btn .qi { width: 26px; height: 26px; font-size: 0.85rem; border-radius: 6px; }
+
+    .chart-panel { padding: 0.65rem; border-radius: 10px; }
+    .chart-panel .chart-container { height: 180px; }
+    .chart-panel .panel-title { font-size: 0.72rem; }
+    .chart-panel .panel-sub { font-size: 0.6rem; }
+
+    .top-kelas-item { padding: 0.4rem; gap: 0.4rem; }
+    .top-kelas-rank { width: 22px; height: 22px; font-size: 0.65rem; }
+    .top-kelas-name { font-size: 0.7rem; }
+    .top-kelas-pct { font-size: 0.75rem; min-width: 40px; }
+    .top-kelas-mode-btn { padding: 0.2rem 0.35rem; font-size: 0.6rem; }
+    .top-kelas-month-picker { font-size: 0.62rem; }
+    .top-kelas-month-picker select { font-size: 0.6rem; padding: 0.15rem 0.25rem; }
+
+    h2 { font-size: 1rem; }
+    h3 { font-size: 0.85rem; }
+    .card { padding: 0.7rem; border-radius: 8px; }
+    .card .value { font-size: 1.2rem; }
+    .cards { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+    .table-wrap { border-radius: 8px; }
+    table { font-size: 0.65rem; }
+    th { padding: 0.35rem 0.2rem; font-size: 0.62rem; }
+    td { padding: 0.3rem 0.2rem; }
+    td input { width: 40px; font-size: 0.65rem; padding: 2px 3px; }
+
+    .btn { padding: 0.4rem 0.65rem; font-size: 0.7rem; border-radius: 6px; }
+    .btn.small { padding: 0.2rem 0.4rem; font-size: 0.62rem; }
+
+    .filter-bar { padding: 0.6rem; gap: 0.5rem; border-radius: 8px; }
+    .filter-bar .form-group { min-width: 120px; max-width: 100%; flex: 1 1 100%; }
+    .filter-bar .form-group label { font-size: 0.65rem; }
+    .form-group input, .form-group select, .form-group textarea { font-size: 0.75rem; padding: 0.4rem; }
+
+    .form-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+    .tabs { gap: 0.3rem; }
+    .tab { padding: 0.35rem 0.6rem; font-size: 0.68rem; }
+
+    .logo-upload-section { padding: 0.75rem; gap: 0.75rem; }
+    .logo-preview-box { width: 70px; height: 70px; }
+
+    .suggest-panel { padding: 0.75rem; border-radius: 8px; }
+    .suggest-panel h3 { font-size: 0.85rem; }
+    .suggest-panel .suggest-sub { font-size: 0.68rem; }
+    .suggest-grid { grid-template-columns: 1fr; gap: 0.5rem; }
+    .suggest-card { padding: 0.6rem 0.7rem; }
+    .suggest-card .suggest-kelas { font-size: 0.75rem; }
+    .suggest-card .suggest-pct { font-size: 0.75rem; }
+    .suggest-card .suggest-reason { font-size: 0.65rem; }
+    .suggest-card .suggest-actions-list { font-size: 0.68rem; }
+
+    .intervensi-form { padding: 0.75rem; }
+    .intervensi-form textarea { min-height: 40px; }
+
+    .pie-card .pie-canvas-wrap { height: 150px; }
+    .pie-card h4 { font-size: 0.78rem; }
+    .chart-grid { grid-template-columns: repeat(2, 1fr); gap: 0.5rem; }
+
+    /* Print tetap sama */
   }
 
+  @media (max-width: 400px) {
+    .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+    .stat-card .stat-value { font-size: 1.1rem; }
+    .grid-bulan { grid-template-columns: repeat(3, 1fr); }
+    nav button { min-width: 46px; max-width: 58px; font-size: 0.5rem; }
+    nav button .nav-label { font-size: 0.5rem; }
+    .chart-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ==== PRINT ==== */
   @page { size: A4 landscape; margin: 6mm; }
   @media print {
-    header, nav, .actions, button, .btn, .tabs, .form-grid, .filter-bar, .logo-upload-section, .toast, .quick-actions, .intervensi-form, .suggest-panel, .tahun-picker-wrap, .top-kelas-controls { display: none !important; }
+    header, nav, .actions, button, .btn, .tabs, .form-grid, .filter-bar,
+    .logo-upload-section, .toast, .quick-actions, .intervensi-form,
+    .suggest-panel, .tahun-picker-wrap, .top-kelas-controls { display: none !important; }
     html, body { background: white !important; margin: 0 !important; padding: 0 !important; width: 100% !important; }
     .page { display: block !important; }
     .page:not(.active) { display: none !important; }
@@ -297,7 +605,11 @@
     h2, h3 { page-break-after: avoid; }
     .tab-content { display: block !important; }
     * { box-shadow: none !important; text-shadow: none !important; }
-    body::before { content: attr(data-print-title); display: block; font-size: 14pt; font-weight: bold; color: #1e40af; border-bottom: 2pt solid #1e40af; padding-bottom: 3pt; margin-bottom: 4pt; }
+    body::before {
+      content: attr(data-print-title); display: block; font-size: 14pt;
+      font-weight: bold; color: #1e40af; border-bottom: 2pt solid #1e40af;
+      padding-bottom: 3pt; margin-bottom: 4pt;
+    }
   }
   body[data-print-title]::before { display: none; }
 </style>
@@ -311,21 +623,21 @@
       <h1 id="hdr-nama">SISTEM ANALISIS DATA KEHADIRAN MURID</h1>
       <div class="sekolah-info" id="hdr-info"></div>
     </div>
-    <div class="tahun-picker-wrap" title="Pilih tahun untuk melihat/mengisi data">
-      <label for="global-tahun">📅 Tahun:</label>
+    <div class="tahun-picker-wrap" title="Pilih tahun">
+      <label for="global-tahun">📅</label>
       <select id="global-tahun" onchange="tukarTahunAktif(this.value)"></select>
     </div>
   </div>
-  <nav>
-    <button class="nav-btn active" data-page="dashboard">🏠 Dashboard</button>
-    <button class="nav-btn" data-page="data-asas">📋 Data Asas</button>
-    <button class="nav-btn" data-page="bulanan">📅 Bulanan</button>
-    <button class="nav-btn" data-page="enrolmen-tahunan">👥 Enrolmen Tahunan</button>
-    <button class="nav-btn" data-page="analisis-bulanan">📊 Analisis Bulanan</button>
-    <button class="nav-btn" data-page="analisis-kelas">🏫 Analisis Kelas</button>
-    <button class="nav-btn" data-page="analisis-keseluruhan">📈 Analisis Keseluruhan</button>
-    <button class="nav-btn" data-page="intervensi">🆘 Intervensi</button>
-    <button class="nav-btn" data-page="tetapan">⚙️ Tetapan</button>
+  <nav id="main-nav">
+    <button class="nav-btn active" data-page="dashboard"><span class="nav-icon">🏠</span><span class="nav-label">Dashboard</span></button>
+    <button class="nav-btn" data-page="data-asas"><span class="nav-icon">📋</span><span class="nav-label">Data Asas</span></button>
+    <button class="nav-btn" data-page="bulanan"><span class="nav-icon">📅</span><span class="nav-label">Bulanan</span></button>
+    <button class="nav-btn" data-page="enrolmen-tahunan"><span class="nav-icon">👥</span><span class="nav-label">Enrolmen</span></button>
+    <button class="nav-btn" data-page="analisis-bulanan"><span class="nav-icon">📊</span><span class="nav-label">Analisis Bulanan</span></button>
+    <button class="nav-btn" data-page="analisis-kelas"><span class="nav-icon">🏫</span><span class="nav-label">Analisis Kelas</span></button>
+    <button class="nav-btn" data-page="analisis-keseluruhan"><span class="nav-icon">📈</span><span class="nav-label">Keseluruhan</span></button>
+    <button class="nav-btn" data-page="intervensi"><span class="nav-icon">🆘</span><span class="nav-label">Intervensi</span></button>
+    <button class="nav-btn" data-page="tetapan"><span class="nav-icon">⚙️</span><span class="nav-label">Tetapan</span></button>
   </nav>
 </header>
 
@@ -336,7 +648,7 @@
   <div class="dash-hero">
     <div class="dash-hero-content">
       <div class="dash-greeting" id="dash-greeting">Selamat Datang 👋</div>
-      <div class="dash-subtitle" id="dash-subtitle">Ringkasan kehadiran murid anda hari ini</div>
+      <div class="dash-subtitle" id="dash-subtitle">Ringkasan kehadiran murid anda</div>
       <div class="dash-date">📅 <span id="dash-today"></span></div>
     </div>
   </div>
@@ -383,23 +695,23 @@
   <div class="quick-actions">
     <button class="quick-btn" onclick="goToPage('bulanan')">
       <span class="qi">📝</span>
-      <span>Isi Kehadiran<br><span style="font-weight:400;color:var(--muted);font-size:0.72rem">Bulan semasa</span></span>
+      <span>Isi Kehadiran<br><span style="font-weight:400;color:var(--muted);font-size:0.62rem">Bulan semasa</span></span>
     </button>
     <button class="quick-btn" onclick="goToPage('analisis-bulanan')">
       <span class="qi">📊</span>
-      <span>Analisis Bulanan<br><span style="font-weight:400;color:var(--muted);font-size:0.72rem">Lihat trend</span></span>
+      <span>Analisis Bulanan<br><span style="font-weight:400;color:var(--muted);font-size:0.62rem">Lihat trend</span></span>
     </button>
     <button class="quick-btn" onclick="goToPage('enrolmen-tahunan')">
       <span class="qi">👥</span>
-      <span>Enrolmen<br><span style="font-weight:400;color:var(--muted);font-size:0.72rem">Data murid</span></span>
+      <span>Enrolmen<br><span style="font-weight:400;color:var(--muted);font-size:0.62rem">Data murid</span></span>
     </button>
     <button class="quick-btn" onclick="goToPage('intervensi')">
       <span class="qi">🆘</span>
-      <span>Intervensi<br><span style="font-weight:400;color:var(--muted);font-size:0.72rem">Cadangan automatik</span></span>
+      <span>Intervensi<br><span style="font-weight:400;color:var(--muted);font-size:0.62rem">Cadangan</span></span>
     </button>
     <button class="quick-btn" onclick="goToPage('analisis-keseluruhan')">
       <span class="qi">📈</span>
-      <span>Keseluruhan<br><span style="font-weight:400;color:var(--muted);font-size:0.72rem">Laporan penuh</span></span>
+      <span>Keseluruhan<br><span style="font-weight:400;color:var(--muted);font-size:0.62rem">Laporan penuh</span></span>
     </button>
   </div>
 
@@ -435,7 +747,7 @@
       <div class="panel-header">
         <div>
           <div class="panel-title">🥧 Pecahan Kaum</div>
-          <div class="panel-sub">Keseluruhan sekolah (akhir bulan)</div>
+          <div class="panel-sub">Keseluruhan sekolah</div>
         </div>
       </div>
       <div class="chart-container"><canvas id="chart-pie-kaum"></canvas></div>
@@ -447,14 +759,14 @@
           <div class="panel-sub" id="dash-top-sub">Kumulatif sehingga bulan dipilih</div>
         </div>
         <div class="top-kelas-controls">
-          <button class="top-kelas-mode-btn active" id="top-mode-kumulatif" onclick="setTopKelasMode('kumulatif')" title="Purata kumulatif Januari sehingga bulan dipilih">📊 Kumulatif</button>
-          <button class="top-kelas-mode-btn" id="top-mode-bulanan" onclick="setTopKelasMode('bulanan')" title="Hanya bulan dipilih sahaja">📅 Bulanan</button>
+          <button class="top-kelas-mode-btn active" id="top-mode-kumulatif" onclick="setTopKelasMode('kumulatif')" title="Purata kumulatif">📊 Kum.</button>
+          <button class="top-kelas-mode-btn" id="top-mode-bulanan" onclick="setTopKelasMode('bulanan')" title="Bulanan sahaja">📅 Bulanan</button>
           <div class="top-kelas-month-picker">
-            <label for="top-kelas-bulan">Bulan:</label>
+            <label for="top-kelas-bulan">📅</label>
             <select id="top-kelas-bulan" onchange="renderTopKelas()">
-              <option value="1">Januari</option><option value="2">Februari</option><option value="3">Mac</option><option value="4">April</option>
-              <option value="5">Mei</option><option value="6">Jun</option><option value="7">Julai</option><option value="8">Ogos</option>
-              <option value="9">September</option><option value="10">Oktober</option><option value="11">November</option><option value="12">Disember</option>
+              <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mac</option><option value="4">Apr</option>
+              <option value="5">Mei</option><option value="6">Jun</option><option value="7">Jul</option><option value="8">Ogos</option>
+              <option value="9">Sep</option><option value="10">Okt</option><option value="11">Nov</option><option value="12">Dis</option>
             </select>
           </div>
         </div>
@@ -470,10 +782,10 @@
 
   <h3>📅 Pengurusan Tahun</h3>
   <div class="card warning" style="margin-bottom: 1rem;">
-    <p style="font-size: 0.88rem; color: var(--muted); margin-bottom: 0.75rem;">
-      Sistem menyokong <b>data pelbagai tahun</b>. Setiap tahun mempunyai data kehadiran bulanan tersendiri. Anda boleh menambah tahun baharu (data enrolmen akan disalin daripada tahun sebelumnya sebagai titik permulaan), menukar tahun aktif, atau memadam tahun.
+    <p style="font-size: 0.78rem; color: var(--muted); margin-bottom: 0.5rem;">
+      Sistem menyokong <b>data pelbagai tahun</b>. Setiap tahun mempunyai data kehadiran bulanan tersendiri.
     </p>
-    <div class="actions" style="margin:0 0 0.75rem 0;">
+    <div class="actions" style="margin:0 0 0.5rem 0;">
       <button class="btn success" onclick="tambahTahunBaru()">➕ Tambah Tahun Baharu</button>
     </div>
     <div class="year-list" id="year-list"></div>
@@ -483,7 +795,7 @@
   <div class="logo-upload-section">
     <div class="logo-preview-box" id="logo-preview-box"><div class="placeholder">Belum ada<br>logo</div></div>
     <div class="logo-info">
-      <p>📤 Upload logo sekolah (PNG, JPG, SVG). Logo muncul di header, PDF dan cetakan. Saiz disyorkan 300×300px, maksimum 2MB.</p>
+      <p>📤 Upload logo sekolah (PNG, JPG, SVG). Logo muncul di header, PDF dan cetakan.</p>
       <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="uploadLogo(event)">
       <div class="actions" style="margin: 0;">
         <button class="btn" onclick="document.getElementById('logo-file').click()">📤 Upload Logo</button>
@@ -502,7 +814,7 @@
     <div class="form-group"><label>Bilangan Bulan Persekolahan</label><input id="asas-bil-bulan" type="number"></div>
   </div>
   <div class="actions"><button class="btn success" onclick="simpanSekolah()">💾 Simpan Maklumat Sekolah</button></div>
-  <h3>🏫 Senarai Kelas & Enrolmen Awal (Tahun Aktif: <span id="asas-tahun-aktif" style="color:var(--primary)"></span>)</h3>
+  <h3>🏫 Senarai Kelas & Enrolmen Awal (Tahun: <span id="asas-tahun-aktif" style="color:var(--primary)"></span>)</h3>
   <div class="actions"><button class="btn" onclick="tambahKelas()">➕ Tambah Kelas</button></div>
   <div class="table-wrap">
     <table id="tbl-kelas">
@@ -543,7 +855,7 @@
     <div class="tab" data-tab="tab-enrol-bulan">👥 Enrolmen Bulan Ini</div>
   </div>
   <div class="tab-content active" id="tab-input">
-    <p id="bulanan-hint" style="color: var(--muted); font-size: 0.85rem; margin-bottom: 1rem; padding: 1rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid var(--warning);">⚠️ Sila pilih bulan di atas untuk mula mengisi data.</p>
+    <p id="bulanan-hint" style="color: var(--muted); font-size: 0.78rem; margin-bottom: 0.75rem; padding: 0.75rem; background: #fef3c7; border-radius: 8px; border-left: 4px solid var(--warning);">⚠️ Sila pilih bulan di atas untuk mula mengisi data.</p>
     <div class="table-wrap">
       <table id="tbl-bulanan">
         <thead>
@@ -557,7 +869,7 @@
             <th>M L</th><th>M P</th><th>C L</th><th>C P</th><th>I L</th><th>I P</th><th>LL L</th><th>LL P</th>
           </tr>
         </thead>
-        <tbody><tr><td colspan="21" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr></tbody><tfoot></tfoot>
+        <tbody><tr><td colspan="21" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr></tbody><tfoot></tfoot>
       </table>
     </div>
     <div class="actions">
@@ -580,7 +892,7 @@
           </tr>
           <tr><th>L</th><th>P</th><th>L</th><th>P</th><th>L</th><th>P</th><th>L</th><th>P</th></tr>
         </thead>
-        <tbody><tr><td colspan="12" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr></tbody><tfoot></tfoot>
+        <tbody><tr><td colspan="12" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr></tbody><tfoot></tfoot>
       </table>
     </div>
     <div class="actions">
@@ -690,7 +1002,7 @@
   <h3>📋 Perincian Per Kelas</h3>
   <div class="table-wrap"><table id="tbl-an-bulanan">
     <thead><tr><th>Bil</th><th>Kelas</th><th>Aliran</th><th>Enrolmen</th><th>% Hadir</th><th>Purata Hadir</th><th>Beza KPI</th><th>Status</th></tr></thead>
-    <tbody><tr><td colspan="8" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat analisis</td></tr></tbody>
+    <tbody><tr><td colspan="8" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat analisis</td></tr></tbody>
   </table></div>
   <h3>📊 Carta Perbandingan Kelas</h3>
   <div class="chart-wrap"><canvas id="chart-an-bulanan" height="140"></canvas></div>
@@ -781,13 +1093,13 @@
 <!-- INTERVENSI -->
 <section class="page" id="page-intervensi">
   <h2>🆘 Intervensi Murid</h2>
-  <p style="color: var(--muted); font-size: 0.88rem; margin-bottom: 1rem;">Sistem mencadangkan aktiviti intervensi secara automatik berdasarkan kelas yang tidak mencapai KPI. Anda boleh terus menambah cadangan sebagai rekod rasmi, atau mengurus rekod sedia ada.</p>
+  <p style="color: var(--muted); font-size: 0.78rem; margin-bottom: 0.75rem;">Sistem mencadangkan aktiviti intervensi secara automatik berdasarkan kelas yang tidak mencapai KPI.</p>
 
   <div class="suggest-panel">
     <h3>🤖 Cadangan Intervensi Automatik</h3>
-    <div class="suggest-sub">Berdasarkan data kehadiran bulanan. Sistem mengenal pasti kelas yang <b>bawah KPI</b> dan mencadangkan aktiviti intervensi yang sesuai.</div>
-    <div class="form-group" style="max-width: 320px; margin-bottom: 0.75rem;">
-      <label style="color:#78350f; font-weight:600;">Pilih Bulan untuk Analisis Cadangan</label>
+    <div class="suggest-sub">Berdasarkan data kehadiran bulanan.</div>
+    <div class="form-group" style="max-width: 280px; margin-bottom: 0.5rem;">
+      <label style="color:#78350f; font-weight:600;">Pilih Bulan Analisis</label>
       <select id="suggest-bulan" onchange="renderCadanganIntervensi()">
         <option value="">— Pilih Bulan —</option>
         <option value="1">Januari</option><option value="2">Februari</option><option value="3">Mac</option><option value="4">April</option>
@@ -802,7 +1114,7 @@
     <div id="suggest-list" class="suggest-grid">
       <div class="suggest-empty">Pilih bulan untuk melihat cadangan automatik.</div>
     </div>
-    <div class="actions" style="margin-bottom:0; margin-top:0.75rem;">
+    <div class="actions" style="margin-bottom:0; margin-top:0.5rem;">
       <button class="btn success" onclick="tambahSemuaCadangan()">✅ Tambah Semua Cadangan ke Rekod</button>
     </div>
   </div>
@@ -816,7 +1128,7 @@
       </div>
       <div class="form-group">
         <label>Nama Murid / Sasaran *</label>
-        <input id="int-nama" placeholder="Nama murid atau sasaran (cth: Kelas 3M)">
+        <input id="int-nama" placeholder="Nama murid atau sasaran">
       </div>
       <div class="form-group">
         <label>Jenis Intervensi *</label>
@@ -882,7 +1194,7 @@
           <th>Bil</th><th>Kelas</th><th>Nama Murid / Sasaran</th><th>Jenis</th><th>Tarikh Mula</th><th>Status</th><th>Keterangan</th><th>Tindakan</th>
         </tr>
       </thead>
-      <tbody><tr><td colspan="8" style="padding:2rem;color:var(--muted);">Belum ada rekod intervensi</td></tr></tbody>
+      <tbody><tr><td colspan="8" style="padding:1.5rem;color:var(--muted);">Belum ada rekod intervensi</td></tr></tbody>
     </table>
   </div>
 
@@ -905,7 +1217,7 @@
   <h3 style="color: var(--danger);">⚠️ Zon Bahaya</h3>
   <div class="actions"><button class="btn danger" onclick="resetData()">🗑️ Reset Semua Data</button></div>
   <h3>ℹ️ Maklumat</h3>
-  <p style="color: var(--muted); line-height: 1.8;">
+  <p style="color: var(--muted); line-height: 1.7; font-size: 0.8rem;">
     Sistem v2.3 — Sokongan <b>data pelbagai tahun</b> + Top 5 Kelas dengan pilihan <b>Kumulatif</b> atau <b>Bulanan</b>.<br>
     Data disimpan dalam <code>localStorage</code>. Backup kerap!
   </p>
@@ -1084,7 +1396,7 @@ function tambahTahunBaru() {
   renderHeader();
   renderDataAsas();
   renderDashboard();
-  toast(`✅ Tahun ${thn} ditambah (enrolmen disalin dari tahun semasa)`);
+  toast(`✅ Tahun ${thn} ditambah (enrolmen disalin)`);
 }
 
 function padamTahun(y) {
@@ -1120,18 +1432,14 @@ function fmtPct(v) { return (v==null||isNaN(v)) ? '-' : Number(v).toFixed(2)+'%'
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1; }
 
 /* ============================================================
-   SORTING KELAS — ikut tahun/grade secara automatik
+   SORTING KELAS
    ============================================================ */
 function kelasSortKey(nama) {
   const s = String(nama || '').trim().toUpperCase();
-  // PRA / PRASEKOLAH -> paling atas
   if (/^PRA/.test(s)) return { tier: 0, num: 0, text: s };
-  // PPKI -> paling bawah
   if (/^PPKI/.test(s)) return { tier: 2, num: 0, text: s };
-  // Ambil nombor pertama (1M -> 1, 2M -> 2, 10A -> 10)
   const m = s.match(/\d+/);
   if (m) return { tier: 1, num: parseInt(m[0], 10), text: s };
-  // Tiada nombor -> di tengah, ikut abjad
   return { tier: 1, num: 9999, text: s };
 }
 
@@ -1333,7 +1641,6 @@ document.querySelectorAll('.tab').forEach(t => {
    ============================================================ */
 function renderHeader() {
   const s = state.sekolah;
-  const hdrNama = document.getElementById('hdr-nama');
   const hdrInfo = document.getElementById('hdr-info');
   if (hdrInfo) hdrInfo.textContent = `${s.nama || ''} • ${s.alamat || ''} • KPI ${s.kpi}%`;
   document.title = 'SISTEM ANALISIS DATA KEHADIRAN MURID';
@@ -1426,16 +1733,16 @@ function renderDashboard() {
       if (ctxEl) {
         if (chartTrend) chartTrend.destroy();
         const ctx = ctxEl.getContext('2d');
-        const grad = ctx.createLinearGradient(0, 0, 0, 280);
+        const grad = ctx.createLinearGradient(0, 0, 0, 220);
         grad.addColorStop(0, 'rgba(37,99,235,0.35)');
         grad.addColorStop(1, 'rgba(37,99,235,0)');
         chartTrend = new Chart(ctx, {
           type:'line',
           data:{ labels, datasets:[
-            { label:'Sebenar (%)', data:dataS, borderColor:'#2563eb', backgroundColor:grad, tension:0.4, fill:true, spanGaps:true, borderWidth:3, pointRadius:5, pointHoverRadius:8, pointBackgroundColor:'#fff', pointBorderColor:'#2563eb', pointBorderWidth:2 },
+            { label:'Sebenar (%)', data:dataS, borderColor:'#2563eb', backgroundColor:grad, tension:0.4, fill:true, spanGaps:true, borderWidth:3, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:'#fff', pointBorderColor:'#2563eb', pointBorderWidth:2 },
             { label:'KPI (%)', data:dataK, borderColor:'#dc2626', borderDash:[6,4], pointRadius:0, borderWidth:2 }
           ]},
-          options:{ responsive:true, maintainAspectRatio:false, interaction:{ intersect:false, mode:'index' }, scales:{ y:{ min:70, max:100, ticks:{ callback:v=>v+'%', font:{ size:11 } }, grid:{ color:'rgba(0,0,0,0.05)' } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } }, plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:15, font:{ size:12 } } }, tooltip:{ backgroundColor:'rgba(15,23,42,0.95)', padding:12, cornerRadius:8 } } }
+          options:{ responsive:true, maintainAspectRatio:false, interaction:{ intersect:false, mode:'index' }, scales:{ y:{ min:70, max:100, ticks:{ callback:v=>v+'%', font:{ size:10 } }, grid:{ color:'rgba(0,0,0,0.05)' } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } } }, plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:12, font:{ size:11 } } }, tooltip:{ backgroundColor:'rgba(15,23,42,0.95)', padding:10, cornerRadius:8 } } }
         });
       }
     } catch (e) { console.error('Chart trend error:', e); }
@@ -1448,13 +1755,13 @@ function renderDashboard() {
       if (ctxEl) {
         if (chartEnrolTrend) chartEnrolTrend.destroy();
         const ctx = ctxEl.getContext('2d');
-        const grad = ctx.createLinearGradient(0, 0, 0, 280);
+        const grad = ctx.createLinearGradient(0, 0, 0, 220);
         grad.addColorStop(0, 'rgba(22,163,74,0.35)');
         grad.addColorStop(1, 'rgba(22,163,74,0)');
         chartEnrolTrend = new Chart(ctx, {
           type:'line',
-          data:{ labels, datasets:[{ label:'Jumlah Enrolmen', data:enrolData, borderColor:'#16a34a', backgroundColor:grad, tension:0.4, fill:true, borderWidth:3, pointRadius:5, pointHoverRadius:8, pointBackgroundColor:'#fff', pointBorderColor:'#16a34a', pointBorderWidth:2 }]},
-          options:{ responsive:true, maintainAspectRatio:false, interaction:{ intersect:false, mode:'index' }, scales:{ y:{ beginAtZero:false, ticks:{ font:{ size:11 } }, grid:{ color:'rgba(0,0,0,0.05)' } }, x:{ grid:{ display:false }, ticks:{ font:{ size:11 } } } }, plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:15, font:{ size:12 } } }, tooltip:{ backgroundColor:'rgba(15,23,42,0.95)', padding:12, cornerRadius:8 } } }
+          data:{ labels, datasets:[{ label:'Jumlah Enrolmen', data:enrolData, borderColor:'#16a34a', backgroundColor:grad, tension:0.4, fill:true, borderWidth:3, pointRadius:4, pointHoverRadius:7, pointBackgroundColor:'#fff', pointBorderColor:'#16a34a', pointBorderWidth:2 }]},
+          options:{ responsive:true, maintainAspectRatio:false, interaction:{ intersect:false, mode:'index' }, scales:{ y:{ beginAtZero:false, ticks:{ font:{ size:10 } }, grid:{ color:'rgba(0,0,0,0.05)' } }, x:{ grid:{ display:false }, ticks:{ font:{ size:10 } } } }, plugins:{ legend:{ position:'bottom', labels:{ usePointStyle:true, padding:12, font:{ size:11 } } }, tooltip:{ backgroundColor:'rgba(15,23,42,0.95)', padding:10, cornerRadius:8 } } }
         });
       }
     } catch (e) { console.error('Chart enrol error:', e); }
@@ -1472,7 +1779,7 @@ function renderDashboard() {
         if (totalPie === 0) {
           const parent = ctxEl.parentElement;
           if (parent && !parent.querySelector('.pie-empty')) {
-            parent.innerHTML = `<div class="chart-empty pie-empty" style="height:280px;display:flex;align-items:center;justify-content:center;color:var(--muted)">Belum ada data enrolmen.<br><b>Isi di 📋 Data Asas</b></div>`;
+            parent.innerHTML = `<div class="chart-empty pie-empty" style="height:220px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:0.8rem">Belum ada data enrolmen.<br><b>Isi di 📋 Data Asas</b></div>`;
           }
         } else {
           if (!document.getElementById('chart-pie-kaum')) {
@@ -1483,8 +1790,8 @@ function renderDashboard() {
           if (canvas) {
             chartPieKaum = new Chart(canvas.getContext('2d'), {
               type: 'doughnut',
-              data: { labels: KATEGORI.map(c => KATEGORI_LABEL[c]), datasets: [{ data: KATEGORI.map(c => totKaum[c]), backgroundColor: KATEGORI.map(c => KATEGORI_WARNA[c]), borderColor: '#fff', borderWidth: 3, hoverOffset: 12 }] },
-              options: { responsive:true, maintainAspectRatio:false, cutout: '55%', plugins: { legend: { position:'bottom', labels:{ usePointStyle:true, padding:14, font:{ size:12 } } }, tooltip: { backgroundColor:'rgba(15,23,42,0.95)', padding:12, cornerRadius:8, callbacks: { label: ctx => { const val = ctx.parsed; const pct = totalPie>0?(val/totalPie*100).toFixed(1):0; return `${ctx.label}: ${val} (${pct}%)`; } } }, datalabels: { color:'#fff', font:{ weight:'bold', size:12 }, formatter: v => v===0||totalPie===0?'':((v/totalPie*100)>=5?(v/totalPie*100).toFixed(1)+'%':'') } } },
+              data: { labels: KATEGORI.map(c => KATEGORI_LABEL[c]), datasets: [{ data: KATEGORI.map(c => totKaum[c]), backgroundColor: KATEGORI.map(c => KATEGORI_WARNA[c]), borderColor: '#fff', borderWidth: 3, hoverOffset: 10 }] },
+              options: { responsive:true, maintainAspectRatio:false, cutout: '55%', plugins: { legend: { position:'bottom', labels:{ usePointStyle:true, padding:12, font:{ size:11 } } }, tooltip: { backgroundColor:'rgba(15,23,42,0.95)', padding:10, cornerRadius:8, callbacks: { label: ctx => { const val = ctx.parsed; const pct = totalPie>0?(val/totalPie*100).toFixed(1):0; return `${ctx.label}: ${val} (${pct}%)`; } } }, datalabels: { color:'#fff', font:{ weight:'bold', size:11 }, formatter: v => v===0||totalPie===0?'':((v/totalPie*100)>=5?(v/totalPie*100).toFixed(1)+'%':'') } } },
               plugins: [ChartDataLabels]
             });
           }
@@ -1552,7 +1859,7 @@ function renderTopKelas() {
     const msg = topKelasMode === 'kumulatif'
       ? `Belum ada data kehadiran sehingga ${BULAN[bulanAkhir]} ${tahun}.`
       : `Belum ada data kehadiran untuk ${BULAN[bulanAkhir]} ${tahun}.`;
-    topEl.innerHTML = `<div style="text-align:center;padding:2rem 1rem;color:var(--muted);font-size:0.9rem;display:flex;align-items:center;justify-content:center;height:100%">
+    topEl.innerHTML = `<div style="text-align:center;padding:1.5rem 1rem;color:var(--muted);font-size:0.8rem;display:flex;align-items:center;justify-content:center;height:100%">
       ${msg}<br>
       <b style="color:var(--primary);margin-left:0.3rem">Isi di page 📅 Bulanan</b>
     </div>`;
@@ -1566,9 +1873,9 @@ function renderTopKelas() {
     return `<div class="top-kelas-item">
       <div class="top-kelas-rank ${rank}">${i+1}</div>
       <div class="top-kelas-info">
-        <div class="top-kelas-name">${t.nama} <span style="color:var(--muted);font-weight:400;font-size:0.75rem">(${t.aliran})</span></div>
+        <div class="top-kelas-name">${t.nama} <span style="color:var(--muted);font-weight:400;font-size:0.68rem">(${t.aliran})</span></div>
         <div class="top-kelas-bar"><div class="top-kelas-bar-fill ${barClass}" style="width:${Math.min(100, t.purata)}%"></div></div>
-        <div style="font-size:0.7rem;color:var(--muted);margin-top:0.2rem">${infoBulan}</div>
+        <div style="font-size:0.6rem;color:var(--muted);margin-top:0.15rem">${infoBulan}</div>
       </div>
       <div class="top-kelas-pct">${t.purata.toFixed(1)}%</div>
     </div>`;
@@ -1601,7 +1908,6 @@ function renderKelasTable() {
   if (!tbody || !tfoot) return;
   tbody.innerHTML = '';
 
-  // Papar ikut susunan tahun/grade (tidak ubah array asal)
   const senaraiKelas = sortKelasArray(currentKelas());
 
   let tot = { melayu_l:0,melayu_p:0,cina_l:0,cina_p:0,india_l:0,india_p:0,lain_l:0,lain_p:0 };
@@ -1614,8 +1920,8 @@ function renderKelasTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${i+1}</td>
-      <td><input style="width:120px;text-align:left" value="${k.nama}" onchange="updateKelas(${k.id},'nama',this.value)"></td>
-      <td><select style="padding:4px;border-radius:6px;border:1px solid var(--border)" onchange="updateKelas(${k.id},'aliran',this.value)">${ALIRAN_LIST.map(a=>`<option ${a===k.aliran?'selected':''}>${a}</option>`).join('')}</select></td>
+      <td><input style="width:100px;text-align:left" value="${k.nama}" onchange="updateKelas(${k.id},'nama',this.value)"></td>
+      <td><select style="padding:3px;border-radius:5px;border:1px solid var(--border);font-size:0.7rem" onchange="updateKelas(${k.id},'aliran',this.value)">${ALIRAN_LIST.map(a=>`<option ${a===k.aliran?'selected':''}>${a}</option>`).join('')}</select></td>
       ${KATEGORI.map(cat => `
         <td><input type="number" min="0" class="hadir" value="${k[cat+'_l']||0}" onchange="updateKelas(${k.id},'${cat}_l',this.value)"></td>
         <td><input type="number" min="0" class="hadir" value="${k[cat+'_p']||0}" onchange="updateKelas(${k.id},'${cat}_p',this.value)"></td>
@@ -1720,11 +2026,11 @@ function renderBulanan() {
     const info = document.getElementById('bulanan-info');
     if (info) info.textContent = 'Sila pilih bulan';
     const tbody = document.querySelector('#tbl-bulanan tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="21" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="21" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr>`;
     const tfoot = document.querySelector('#tbl-bulanan tfoot');
     if (tfoot) tfoot.innerHTML = '';
     const tbody2 = document.querySelector('#tbl-enrol-bulan tbody');
-    if (tbody2) tbody2.innerHTML = `<tr><td colspan="12" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr>`;
+    if (tbody2) tbody2.innerHTML = `<tr><td colspan="12" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat data</td></tr>`;
     const tfoot2 = document.querySelector('#tbl-enrol-bulan tfoot');
     if (tfoot2) tfoot2.innerHTML = '';
     const cards = document.getElementById('enrol-bulan-cards');
@@ -1871,7 +2177,7 @@ function renderEnrolmenTahunan() {
   setText('enrol-keluar', '-' + keluarT);
 
   const head = document.getElementById('enrol-matriks-head');
-  if (head) head.innerHTML = `<th>Kelas</th><th>Aliran</th>` + BULAN.slice(1).map(b=>`<th>${b}</th>`).join('') + `<th>Purata</th>`;
+  if (head) head.innerHTML = `<th>Kelas</th><th>Aliran</th>` + BULAN.slice(1).map(b=>`<th>${b.substring(0,3)}</th>`).join('') + `<th>Purata</th>`;
   const tbody = document.querySelector('#tbl-enrol-matriks tbody');
   if (tbody) {
     tbody.innerHTML = '';
@@ -1919,7 +2225,7 @@ function renderEnrolmenTahunan() {
       if (chartEnrolKeseluruhan) chartEnrolKeseluruhan.destroy();
       chartEnrolKeseluruhan = new Chart(ctxEl, {
         type:'line',
-        data:{ labels, datasets:[{ label:'Jumlah Enrolmen', data:dataEnrol, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.1)', tension:0.3, fill:true, pointRadius:5 }]},
+        data:{ labels, datasets:[{ label:'Jumlah Enrolmen', data:dataEnrol, borderColor:'#16a34a', backgroundColor:'rgba(22,163,74,0.1)', tension:0.3, fill:true, pointRadius:4 }]},
         options:{ responsive:true, maintainAspectRatio:true, scales:{ y:{ beginAtZero:false } }, plugins:{ legend:{ position:'bottom' } } }
       });
     }
@@ -1964,8 +2270,8 @@ function renderPieCharts() {
     if (ctxKes) {
       pieCharts.keseluruhan = new Chart(ctxKes, {
         type: 'doughnut',
-        data: { labels: KATEGORI.map(c => KATEGORI_LABEL[c]), datasets: [{ data: KATEGORI.map(c => totKaum[c]), backgroundColor: KATEGORI.map(c => KATEGORI_WARNA[c]), borderColor: '#fff', borderWidth: 3, hoverOffset: 10 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 12 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalSemua>0?(ctx.parsed/totalSemua*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: v => v===0||totalSemua===0?'':((v/totalSemua*100)>=3?(v/totalSemua*100).toFixed(1)+'%':'') } } },
+        data: { labels: KATEGORI.map(c => KATEGORI_LABEL[c]), datasets: [{ data: KATEGORI.map(c => totKaum[c]), backgroundColor: KATEGORI.map(c => KATEGORI_WARNA[c]), borderColor: '#fff', borderWidth: 3, hoverOffset: 8 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalSemua>0?(ctx.parsed/totalSemua*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: v => v===0||totalSemua===0?'':((v/totalSemua*100)>=3?(v/totalSemua*100).toFixed(1)+'%':'') } } },
         plugins: [ChartDataLabels]
       });
     }
@@ -1980,7 +2286,7 @@ function renderPieCharts() {
       pieCharts[cat] = new Chart(ctx, {
         type: 'doughnut',
         data: { labels: ['Lelaki', 'Perempuan'], datasets: [{ data: [l, p], backgroundColor: ['#3b82f6', '#ec4899'], borderColor: '#fff', borderWidth: 2, hoverOffset: 8 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 8 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalKP>0?(ctx.parsed/totalKP*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 11 }, formatter: v => v===0||totalKP===0?'':((v/totalKP*100)>=5?(v/totalKP*100).toFixed(1)+'%':'') } } },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 6 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalKP>0?(ctx.parsed/totalKP*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: v => v===0||totalKP===0?'':((v/totalKP*100)>=5?(v/totalKP*100).toFixed(1)+'%':'') } } },
         plugins: [ChartDataLabels]
       });
       const el = document.getElementById('pie-' + cat + '-total');
@@ -1996,12 +2302,12 @@ function renderPieCharts() {
       const kelasId = 'pie-kelas-' + k.id;
       const card = document.createElement('div');
       card.className = 'pie-card';
-      card.innerHTML = `<h4>${k.nama} <span style="font-weight:normal;color:var(--muted);font-size:0.85rem">(${k.aliran})</span></h4><div class="pie-canvas-wrap"><canvas id="${kelasId}"></canvas></div><div class="pie-total">Jumlah: <b>${totalKelas}</b> murid</div>`;
+      card.innerHTML = `<h4>${k.nama} <span style="font-weight:normal;color:var(--muted);font-size:0.75rem">(${k.aliran})</span></h4><div class="pie-canvas-wrap"><canvas id="${kelasId}"></canvas></div><div class="pie-total">Jumlah: <b>${totalKelas}</b> murid</div>`;
       grid.appendChild(card);
       pieCharts['kelas_' + k.id] = new Chart(document.getElementById(kelasId), {
         type: 'pie',
         data: { labels: KATEGORI.map(c => KATEGORI_LABEL[c]), datasets: [{ data: dataK, backgroundColor: KATEGORI.map(c => KATEGORI_WARNA[c]), borderColor: '#fff', borderWidth: 2, hoverOffset: 8 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 6, boxWidth: 12 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalKelas>0?(ctx.parsed/totalKelas*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 10 }, formatter: v => v===0||totalKelas===0?'':((v/totalKelas*100)>=8?(v/totalKelas*100).toFixed(1)+'%':'') } } },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 5, boxWidth: 10 } }, tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.parsed} (${totalKelas>0?(ctx.parsed/totalKelas*100).toFixed(1):0}%)` } }, datalabels: { color: '#fff', font: { weight: 'bold', size: 9 }, formatter: v => v===0||totalKelas===0?'':((v/totalKelas*100)>=8?(v/totalKelas*100).toFixed(1)+'%':'') } } },
         plugins: [ChartDataLabels]
       });
     });
@@ -2024,7 +2330,7 @@ function renderAnalisisBulanan() {
     const info = document.getElementById('an-bulan-info');
     if (info) info.textContent = 'Sila pilih bulan';
     const tbody = document.querySelector('#tbl-an-bulanan tbody');
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="padding: 2rem; color: var(--muted);">Pilih bulan untuk melihat analisis</td></tr>`;
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="padding: 1.5rem; color: var(--muted);">Pilih bulan untuk melihat analisis</td></tr>`;
     const setT = (id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
     setT('anb-kpi', s.kpi+'%');
     setT('anb-purata', '-');
@@ -2166,7 +2472,7 @@ function renderAnalisisKeseluruhan() {
 
   const head = document.getElementById('matriks-head');
   if (!head) return;
-  head.innerHTML = `<th>Kelas</th><th>Aliran</th>` + BULAN.slice(1).map(b=>`<th>${b}</th>`).join('') + `<th>Purata</th>`;
+  head.innerHTML = `<th>Kelas</th><th>Aliran</th>` + BULAN.slice(1).map(b=>`<th>${b.substring(0,3)}</th>`).join('') + `<th>Purata</th>`;
   const tbody = document.querySelector('#tbl-matriks tbody');
   const tfoot = document.querySelector('#tbl-matriks tfoot');
   if (!tbody || !tfoot) return;
@@ -2388,7 +2694,7 @@ function renderCadanganIntervensi() {
     const activitiHtml = c.aktiviti.map(a => `<li>${a}</li>`).join('');
     return `<div class="suggest-card">
       <div class="suggest-head">
-        <div class="suggest-kelas">${c.kelas.nama} <span style="color:var(--muted);font-weight:400;font-size:0.78rem">(${c.kelas.aliran})</span></div>
+        <div class="suggest-kelas">${c.kelas.nama} <span style="color:var(--muted);font-weight:400;font-size:0.7rem">(${c.kelas.aliran})</span></div>
         <div class="suggest-pct">${pctText}</div>
       </div>
       <div class="suggest-reason"><span class="intervensi-badge ${badgeClass}">${badgeText}</span> ${c.sebab}</div>
@@ -2517,7 +2823,7 @@ function renderIntervensi() {
   if (!tbody) return;
   tbody.innerHTML = '';
   if (list.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="padding:2rem;color:var(--muted);">Tiada rekod intervensi.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="padding:1.5rem;color:var(--muted);">Tiada rekod intervensi.</td></tr>`;
     return;
   }
   list.forEach((item, idx) => {
@@ -2936,6 +3242,46 @@ function init() {
     const topBulan = document.getElementById('top-kelas-bulan');
     if (topBulan) topBulan.value = String(bulanSekarang);
     renderCadanganIntervensi();
+
+    /* Auto switch page based on screen size */
+    function handleResponsiveNav() {
+      const isMobile = window.innerWidth <= 768;
+      const nav = document.getElementById('main-nav');
+      if (nav) {
+        nav.style.display = 'flex';
+        if (isMobile) {
+          nav.style.position = 'fixed';
+          nav.style.bottom = '0';
+          nav.style.left = '0';
+          nav.style.right = '0';
+          nav.style.background = 'var(--card)';
+          nav.style.borderTop = '1px solid var(--border)';
+          nav.style.padding = '0.3rem 0.2rem calc(0.3rem + var(--safe-bottom))';
+          nav.style.zIndex = '200';
+          nav.style.boxShadow = '0 -4px 12px rgba(0,0,0,0.08)';
+          nav.style.overflowX = 'auto';
+          nav.style.overflowY = 'hidden';
+          nav.style.flexWrap = 'nowrap';
+          nav.style.height = 'var(--nav-height-mobile)';
+        } else {
+          nav.style.position = 'static';
+          nav.style.bottom = 'auto';
+          nav.style.left = 'auto';
+          nav.style.right = 'auto';
+          nav.style.background = 'transparent';
+          nav.style.borderTop = 'none';
+          nav.style.padding = '0';
+          nav.style.zIndex = 'auto';
+          nav.style.boxShadow = 'none';
+          nav.style.overflowX = 'visible';
+          nav.style.overflowY = 'visible';
+          nav.style.flexWrap = 'wrap';
+          nav.style.height = 'auto';
+        }
+      }
+    }
+    handleResponsiveNav();
+    window.addEventListener('resize', handleResponsiveNav);
   } catch (e) {
     console.error('Init error:', e);
     toast('⚠️ Ralat init: ' + e.message, true);
