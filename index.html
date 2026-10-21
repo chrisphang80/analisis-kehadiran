@@ -956,7 +956,7 @@ function defaultData() {
 
 let state = loadData();
 let tahunAktif = state.tahunAktif;
-let topKelasMode = 'kumulatif'; // 'kumulatif' atau 'bulanan'
+let topKelasMode = 'kumulatif';
 
 function loadData() {
   try {
@@ -1074,7 +1074,7 @@ function tambahTahunBaru() {
   if (state.dataTahunan[thn]) { toast('⚠️ Tahun itu sudah wujud', true); return; }
 
   const srcKelas = currentKelas();
-  const newKelas = srcKelas.map(k => ({ ...k }));
+  const newKelas = sortKelasArray(srcKelas.map(k => ({ ...k })));
   state.dataTahunan[thn] = { kelas: newKelas, bulanan: {} };
   state.tahunAktif = thn;
   tahunAktif = thn;
@@ -1118,7 +1118,34 @@ function toast(msg, isError=false) {
 }
 function fmtPct(v) { return (v==null||isNaN(v)) ? '-' : Number(v).toFixed(2)+'%'; }
 function nextId(arr) { return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1; }
-function kelasIkutAliran(aliran) { return currentKelas().filter(k => !aliran || k.aliran === aliran); }
+
+/* ============================================================
+   SORTING KELAS — ikut tahun/grade secara automatik
+   ============================================================ */
+function kelasSortKey(nama) {
+  const s = String(nama || '').trim().toUpperCase();
+  // PRA / PRASEKOLAH -> paling atas
+  if (/^PRA/.test(s)) return { tier: 0, num: 0, text: s };
+  // PPKI -> paling bawah
+  if (/^PPKI/.test(s)) return { tier: 2, num: 0, text: s };
+  // Ambil nombor pertama (1M -> 1, 2M -> 2, 10A -> 10)
+  const m = s.match(/\d+/);
+  if (m) return { tier: 1, num: parseInt(m[0], 10), text: s };
+  // Tiada nombor -> di tengah, ikut abjad
+  return { tier: 1, num: 9999, text: s };
+}
+
+function sortKelasArray(arr) {
+  return arr.slice().sort((a, b) => {
+    const ka = kelasSortKey(a.nama);
+    const kb = kelasSortKey(b.nama);
+    if (ka.tier !== kb.tier) return ka.tier - kb.tier;
+    if (ka.num !== kb.num) return ka.num - kb.num;
+    return ka.text.localeCompare(kb.text);
+  });
+}
+
+function kelasIkutAliran(aliran) { return sortKelasArray(currentKelas().filter(k => !aliran || k.aliran === aliran)); }
 function enrolmenAwal(kelasId) {
   const k = currentKelas().find(x=>x.id===kelasId); if (!k) return 0;
   return (k.melayu_l||0)+(k.melayu_p||0)+(k.cina_l||0)+(k.cina_p||0)+(k.india_l||0)+(k.india_p||0)+(k.lain_l||0)+(k.lain_p||0);
@@ -1465,10 +1492,7 @@ function renderDashboard() {
       }
     } catch (e) { console.error('Pie kaum error:', e); }
 
-    // Top 5 Kelas
-    try {
-      renderTopKelas();
-    } catch (e) { console.error('Top kelas error:', e); }
+    try { renderTopKelas(); } catch (e) { console.error('Top kelas error:', e); }
 
   } catch (e) {
     console.error('Dashboard error:', e);
@@ -1477,7 +1501,7 @@ function renderDashboard() {
 }
 
 /* ============================================================
-   TOP 5 KELAS — KUMULATIF / BULANAN
+   TOP 5 KELAS
    ============================================================ */
 function setTopKelasMode(mode) {
   topKelasMode = mode;
@@ -1498,49 +1522,26 @@ function renderTopKelas() {
   const bulanDipilih = picker ? parseInt(picker.value) : (new Date().getMonth() + 1);
   const bulanAkhir = (isNaN(bulanDipilih) || bulanDipilih < 1 || bulanDipilih > 12) ? (new Date().getMonth()+1) : bulanDipilih;
 
-  // Update subtitle
   const subEl = document.getElementById('dash-top-sub');
   if (subEl) {
-    if (topKelasMode === 'kumulatif') {
-      subEl.textContent = `Kumulatif ${BULAN[1]} – ${BULAN[bulanAkhir]} ${tahun}`;
-    } else {
-      subEl.textContent = `Bulanan — ${BULAN[bulanAkhir]} ${tahun}`;
-    }
+    if (topKelasMode === 'kumulatif') subEl.textContent = `Kumulatif ${BULAN[1]} – ${BULAN[bulanAkhir]} ${tahun}`;
+    else subEl.textContent = `Bulanan — ${BULAN[bulanAkhir]} ${tahun}`;
   }
 
-  // Kumpul data mengikut mod
   const senarai = [];
   currentKelas().forEach(k => {
     if (topKelasMode === 'kumulatif') {
-      // Purata kumulatif dari bulan 1 hingga bulanAkhir
       let sumPct = 0, countPct = 0;
       for (let b = 1; b <= bulanAkhir; b++) {
         const d = getBulanData(tahun, b)[k.id] || {};
         const pct = d.peratus != null && !isNaN(d.peratus) && d.peratus > 0 ? Number(d.peratus) : null;
         if (pct != null) { sumPct += pct; countPct++; }
       }
-      if (countPct > 0) {
-        senarai.push({
-          nama: k.nama,
-          aliran: k.aliran,
-          purata: sumPct / countPct,
-          bulanDiisi: countPct,
-          mode: 'kumulatif'
-        });
-      }
+      if (countPct > 0) senarai.push({ nama: k.nama, aliran: k.aliran, purata: sumPct / countPct, bulanDiisi: countPct, mode: 'kumulatif' });
     } else {
-      // Bulanan — hanya bulanAkhir
       const d = getBulanData(tahun, bulanAkhir)[k.id] || {};
       const pct = d.peratus != null && !isNaN(d.peratus) && d.peratus > 0 ? Number(d.peratus) : null;
-      if (pct != null) {
-        senarai.push({
-          nama: k.nama,
-          aliran: k.aliran,
-          purata: pct,
-          bulanDiisi: 1,
-          mode: 'bulanan'
-        });
-      }
+      if (pct != null) senarai.push({ nama: k.nama, aliran: k.aliran, purata: pct, bulanDiisi: 1, mode: 'bulanan' });
     }
   });
 
@@ -1561,9 +1562,7 @@ function renderTopKelas() {
   topEl.innerHTML = top5.map((t, i) => {
     const rank = i===0?'gold':i===1?'silver':i===2?'bronze':'normal';
     const barClass = t.purata >= s.kpi ? '' : (t.purata >= s.kpi-5 ? 'warn' : 'danger');
-    const infoBulan = topKelasMode === 'kumulatif'
-      ? `${t.bulanDiisi} bulan diisi`
-      : `Bulanan ${BULAN[bulanAkhir]}`;
+    const infoBulan = topKelasMode === 'kumulatif' ? `${t.bulanDiisi} bulan diisi` : `Bulanan ${BULAN[bulanAkhir]}`;
     return `<div class="top-kelas-item">
       <div class="top-kelas-rank ${rank}">${i+1}</div>
       <div class="top-kelas-info">
@@ -1601,8 +1600,12 @@ function renderKelasTable() {
   const tfoot = document.querySelector('#tbl-kelas tfoot');
   if (!tbody || !tfoot) return;
   tbody.innerHTML = '';
+
+  // Papar ikut susunan tahun/grade (tidak ubah array asal)
+  const senaraiKelas = sortKelasArray(currentKelas());
+
   let tot = { melayu_l:0,melayu_p:0,cina_l:0,cina_p:0,india_l:0,india_p:0,lain_l:0,lain_p:0 };
-  currentKelas().forEach((k,i) => {
+  senaraiKelas.forEach((k,i) => {
     KATEGORI.forEach(cat => {
       tot[cat+'_l'] += Number(k[cat+'_l'])||0;
       tot[cat+'_p'] += Number(k[cat+'_p'])||0;
@@ -1639,15 +1642,43 @@ function simpanSekolah() {
 function tambahKelas() {
   const nama = prompt('Nama kelas baru:'); if (!nama) return;
   const aliran = prompt('Aliran (D1/T1, ..., PRA, PPKI):','D1/T1'); if (!aliran) return;
-  currentKelas().push({ id:nextId(currentKelas()), nama:nama.trim(), aliran:aliran.trim(), melayu_l:0,melayu_p:0,cina_l:0,cina_p:0,india_l:0,india_p:0,lain_l:0,lain_p:0 });
-  saveData(); renderKelasTable(); fillKelasDropdown(); fillIntervensiDropdowns(); renderDashboard();
-  toast(`✅ Kelas ditambah untuk tahun ${tahunAktif}`);
+
+  const yd = currentYearData();
+  yd.kelas.push({
+    id: nextId(yd.kelas),
+    nama: nama.trim(),
+    aliran: aliran.trim(),
+    melayu_l:0, melayu_p:0, cina_l:0, cina_p:0,
+    india_l:0, india_p:0, lain_l:0, lain_p:0
+  });
+
+  yd.kelas = sortKelasArray(yd.kelas);
+
+  saveData();
+  renderKelasTable();
+  fillKelasDropdown();
+  fillIntervensiDropdowns();
+  renderDashboard();
+  toast(`✅ Kelas ditambah & disusun untuk tahun ${tahunAktif}`);
 }
 function updateKelas(id, field, value) {
   const k = currentKelas().find(x=>x.id===id); if (!k) return;
-  if (field.endsWith('_l') || field.endsWith('_p')) { k[field] = parseInt(value)||0; renderKelasTable(); }
-  else k[field] = value;
-  saveData(); fillKelasDropdown(); fillIntervensiDropdowns();
+
+  if (field.endsWith('_l') || field.endsWith('_p')) {
+    k[field] = parseInt(value)||0;
+    renderKelasTable();
+  } else {
+    k[field] = value;
+    if (field === 'nama') {
+      const yd = currentYearData();
+      yd.kelas = sortKelasArray(yd.kelas);
+      renderKelasTable();
+    }
+  }
+
+  saveData();
+  fillKelasDropdown();
+  fillIntervensiDropdowns();
 }
 function hapusKelas(id) {
   if (!confirm('Padam kelas ini untuk tahun ' + tahunAktif + '?')) return;
@@ -1655,14 +1686,18 @@ function hapusKelas(id) {
   yd.kelas = yd.kelas.filter(k=>k.id!==id);
   Object.keys(yd.bulanan).forEach(k => delete yd.bulanan[k][id]);
   state.intervensi = state.intervensi.filter(x => x.kelas_id !== id);
-  saveData(); renderKelasTable(); fillKelasDropdown(); fillIntervensiDropdowns(); renderDashboard();
+  saveData();
+  renderKelasTable();
+  fillKelasDropdown();
+  fillIntervensiDropdowns();
+  renderDashboard();
   toast('🗑️ Kelas dipadam');
 }
 function fillKelasDropdown() {
   const sel = document.getElementById('an-kelas-pilih'); if (!sel) return;
   const aliranEl = document.getElementById('an-kelas-aliran');
   const aliran = aliranEl ? aliranEl.value : '';
-  const list = kelasIkutAliran(aliran);
+  const list = sortKelasArray(kelasIkutAliran(aliran));
   const cur = sel.value;
   sel.innerHTML = list.map(k => `<option value="${k.id}">${k.nama} (${k.aliran})</option>`).join('');
   if (cur && list.find(k=>k.id==cur)) sel.value = cur;
@@ -2233,13 +2268,13 @@ function fillIntervensiDropdowns() {
   const selKelas = document.getElementById('int-kelas');
   if (selKelas) {
     selKelas.innerHTML = '<option value="">— Pilih Kelas —</option>' +
-      currentKelas().map(k => `<option value="${k.id}">${k.nama} (${k.aliran})</option>`).join('');
+      sortKelasArray(currentKelas()).map(k => `<option value="${k.id}">${k.nama} (${k.aliran})</option>`).join('');
   }
   const filterKelas = document.getElementById('int-filter-kelas');
   if (filterKelas) {
     const cur = filterKelas.value;
     filterKelas.innerHTML = '<option value="">Semua Kelas</option>' +
-      currentKelas().map(k => `<option value="${k.id}">${k.nama} (${k.aliran})</option>`).join('');
+      sortKelasArray(currentKelas()).map(k => `<option value="${k.id}">${k.nama} (${k.aliran})</option>`).join('');
     if (cur) filterKelas.value = cur;
   }
 }
